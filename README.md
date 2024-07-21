@@ -4,7 +4,7 @@ Implements [Contour](https://projectcontour.io) ingress controller featuring [Ga
 
 EXPERIMENTAL
 
-Scope;
+Scope:
 - [ ] deploy [Contour](https://projectcontour.io) controller (by a helm chart?)
 - [ ] deploy [Gateway API](https://gateway-api.sigs.k8s.io/)
 - [ ] share common endpoint for [HTTPRoute](https://gateway-api.sigs.k8s.io/api-types/httproute/) and [TLSRoute](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1alpha2.TLSRoute)
