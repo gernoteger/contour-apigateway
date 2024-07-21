@@ -1,0 +1,39 @@
+# justfile to be called for tests
+
+
+imagetag:="contour-test"
+
+imgagerepo:="ghcr.io/gernoteger" # TODO: from actions?
+imagetag2:=imgagerepo / imagetag
+
+image-build:
+    docker build --tag {{ imagetag }} .
+
+image-run:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    docker run -it --rm --name test1 {{ imagetag }}
+
+
+test:
+    go test -v
+
+test-image:
+    mkdir -p target
+
+    go test -c -o target/test
+
+    docker build --tag {{ imagetag }} --tag {{ imagetag2 }} .
+test-image-push:
+    docker push  {{ imagetag2 }}
+
+test-image-run:
+    docker run --rm --entrypoint "./test" --env TARGET_SERVICE_HOST=192.168.0.21 {{ imagetag }}
+
+
+test1:
+    docker run --rm --tty  --entrypoint "sh" {{ imagetag }} -c ./test
+
+test-sh:
+    docker run --rm --tty  -i --entrypoint "sh" {{ imagetag }}

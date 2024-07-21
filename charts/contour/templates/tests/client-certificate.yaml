@@ -1,0 +1,31 @@
+{{ if .Values.test.enabled }}
+# see: https://cert-manager.io/docs/usage/certificate/
+# https://cert-manager.io/docs/devops-tips/syncing-secrets-across-namespaces/
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name:  testclient-tls-cert
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName:  testclient-tls-cert
+
+  duration: 24h 
+  renewBefore: 18h
+
+  usages:
+   - client auth
+
+  commonName: testclient.example.com
+
+  # At least one of a DNS Name, URI, IP address or otherName is required.
+  # for testung only the common name is relevant!
+  dnsNames:
+    - testclient.example.com
+
+  # Issuer references are always required.
+  issuerRef:
+    #name: netcup-dns
+    name: ca-issuer
+    kind: ClusterIssuer
+
+{{ end }}

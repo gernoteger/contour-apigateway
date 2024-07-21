@@ -1,0 +1,19 @@
+{{ if .Values.test.enabled }}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: contour-test-connection
+  labels:
+    app: countour-test
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: testsuite
+      image: {{ .Values.test.image }}
+      imagePullPolicy: Always
+ 
+  restartPolicy: Never
+
+{{ end }}

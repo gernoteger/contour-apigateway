@@ -1,0 +1,79 @@
+# our self-signed ca
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+  namespace: {{ .Values.certManager.namespace}}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cluster-ca
+  namespace: {{ .Values.certManager.namespace}}
+spec:
+  isCA: true
+  commonName: cluster-ca
+  subject:
+    organizations:
+      - Gernot
+    organizationalUnits:
+      - Me
+  secretName: cluster-ca-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+
+---
+# use this to issue certificates used internally
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: ca-issuer
+  namespace: {{ .Values.certManager.namespace}}
+spec:
+  ca:
+    secretName: cluster-ca-secret
+
+--- 
+#test
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: test-server
+  namespace: {{ .Values.certManager.namespace}}
+spec:
+  secretName: test-server-tls
+  isCA: false
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+  - "test-server.test.svc.cluster.local"
+  - "test-server"
+  issuerRef:
+    name: ca-issuer
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: test-client
+  namespace: {{ .Values.certManager.namespace}}
+spec:
+  secretName: test-client-tls
+  isCA: false
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+  - "test-client.test.svc.cluster.local"
+  - "test-client"
+  issuerRef:
+    name: ca-issuer
+    kind: ClusterIssuer

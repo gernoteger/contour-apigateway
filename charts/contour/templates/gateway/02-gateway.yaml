@@ -1,0 +1,40 @@
+---
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: contour
+  namespace: {{ .Release.Namespace }}
+spec:
+  gatewayClassName: example1
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: {{ .Values.loadbalancer.http.port }}
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https
+      protocol: HTTPS
+      port: {{ .Values.loadbalancer.https.port }}
+
+      tls:
+        mode: Terminate # If protocol is `TLS`, `Passthrough` is a possible mode
+        certificateRefs:
+        - kind: Secret
+          group: ""
+          name: default-tls-cert
+
+      allowedRoutes:
+        namespaces:
+          from: All
+
+    - name: passthrough
+      protocol: TLS
+      port: {{ .Values.loadbalancer.tls.port }}
+
+      tls:
+        mode: Passthrough # If protocol is `TLS`, `Passthrough` is a possible mode
+
+      allowedRoutes:
+        namespaces:
+          from: All

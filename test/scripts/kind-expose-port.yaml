@@ -1,0 +1,21 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+- role: worker
+  extraPortMappings:
+  - containerPort: 80 # visible on loadbalancer ip
+    hostPort: 9080
+    listenAddress: "127.0.0.1"
+  - containerPort: 443 # visible on loadbalancer ip
+    hostPort: 9443
+    listenAddress: "127.0.0.1"
+    # tls
+  - containerPort: 8443
+    hostPort: 10443
+    listenAddress: "127.0.0.1"
+
+  - containerPort: 8002
+    hostPort: 8002
+    listenAddress: "127.0.0.1"
+

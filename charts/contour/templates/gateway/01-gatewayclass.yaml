@@ -1,0 +1,38 @@
+{{ if .Values.gatewayprovisioner.enabled }}
+---
+kind: GatewayClass
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: example1
+spec:
+  controllerName: projectcontour.io/gateway-controller
+
+{{ if .Values.gatewayprovisioner.dynamic.enabled }}
+  parametersRef:
+    kind: ContourDeployment
+    group: projectcontour.io
+    name: contour-with-envoy-deployment-params
+    namespace: projectcontour
+---
+#!!! The changes will NOT be propagated to the Gateways per spec,
+# see: https://projectcontour.io/docs/1.29/config/gateway-api/#customizing-a-gatewayclass
+# change the classname if needed! (maybe: hashed?)
+kind: ContourDeployment
+apiVersion: projectcontour.io/v1alpha1
+metadata:
+  namespace: projectcontour
+  name: contour-with-envoy-deployment-params
+spec: # https://projectcontour.io/docs/main/config/api/#projectcontour.io/v1alpha1.ContourDeploymentSpec
+  contour:
+    replicas: 1 # debugging
+  envoy: # https://projectcontour.io/docs/main/config/api/#projectcontour.io/v1alpha1.EnvoySettings
+    workloadType: Deployment #???? TODO
+    replicas: 1 # debugging
+    logLevel: debug # info debug trace
+    networkPublishing:
+      serviceAnnotations:
+        foo: bar
+        my-annotation: somevalue
+        another: v2
+{{ end }}
+{{ end }}
