@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io"
@@ -122,18 +123,14 @@ func contourServiceIP(namespace, loadbalancerServiceName string) (string, error)
 	return svc_ingress.IP, nil
 }
 
-func getEchoResponse(scheme, host string, hostname string) (*Echo, error) {
+func getEchoResponse(scheme, connectionHost string, urlHost string) (*Echo, error) {
 	url := url.URL{
 		Scheme: scheme,
-		Host:   hostname,
-		// Path:     "foo",
-		// RawQuery: "a=10",
+		Host:   urlHost,
 	}
 
-	// TODO: use https://github.com/golang/go/issues/22704#issuecomment-346537646
-	// TODO: fix this
 	dialer := &net.Dialer{
-		Timeout:   30 * time.Second,
+		Timeout:   2 * time.Minute,
 		KeepAlive: 30 * time.Second,
 		DualStack: true,
 	}
@@ -141,9 +138,9 @@ func getEchoResponse(scheme, host string, hostname string) (*Echo, error) {
 	c := http.Client{
 		Timeout: 2 * time.Second,
 		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				// redirect all connections to 127.0.0.1
-				addr = host + addr[strings.LastIndex(addr, ":"):]
+				addr = connectionHost + addr[strings.LastIndex(addr, ":"):]
 				return dialer.DialContext(ctx, network, addr)
 			},
 		},
@@ -153,8 +150,6 @@ func getEchoResponse(scheme, host string, hostname string) (*Echo, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// req.Host = hostname // set header  fails!
 
 	resp, err := c.Do(req)
 	if err != nil {
@@ -179,7 +174,7 @@ func getEchoResponse(scheme, host string, hostname string) (*Echo, error) {
 	return &echo, err
 }
 
-func TestGetHttpEcho(t *testing.T) {
+func TestGetHttpProxyEcho(t *testing.T) {
 
 	namespace := "projectcontour" //TODO: get from k8s??
 
@@ -189,6 +184,21 @@ func TestGetHttpEcho(t *testing.T) {
 	assert.Regexp(t, "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+", svcIP)
 
 	echo, err := getEchoResponse("http", svcIP, "echo-proxy-http.example.com:80")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, echo)
+
+	assert.Regexp(t, "^echo-", echo.Os.Hostname)
+}
+
+func TestGetHttpsProxyEcho(t *testing.T) {
+	// t.Skip()
+	namespace := "projectcontour" //TODO: get from k8s??
+
+	svcIP, err := contourServiceIP(namespace, "contour-envoy") //"envoy-contour"
+	assert.NoError(t, err)
+	assert.Regexp(t, "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+", svcIP)
+
+	echo, err := getEchoResponse("https", svcIP, "echo-proxy-https.example.com:443")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, echo)
 
