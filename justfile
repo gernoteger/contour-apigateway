@@ -20,8 +20,10 @@ export INGRESS_HOST:="localhost" #TODOD
 
 
 
-clean:
+clean-cluster:
     {{scripts}}/cleanup.sh
+
+clean: clean-cluster
     rm -rf target/
 
 make-kind-cluster:
@@ -43,60 +45,41 @@ dependency-build:
 dependency-update:
     {{helm}} dependency update --namespace projectcontour charts/contour
 
+dependency-expand:
+    mkdir -p target/dependencies
+    tar -xzf charts/contour/charts/contour-*.tgz --directory target/dependencies
+
+# smoke tests
 loadbalancerServiceName:="contour-envoy" # if gw-provisioner: envoy-contour !!
-test-http:
+test-url url:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    INGRESS_HOST=$( kubectl get svc -n projectcontour envoy-contour -o json | jq -r '.status.loadBalancer.ingress[0].ip' )
-    echo "INGRESS_HOST=${INGRESS_HOST}"
-    curl -v -k http://${INGRESS_HOST} -H 'Host: echo.example.com'
+    INGRESS_HOST=$( kubectl get svc -n projectcontour {{loadbalancerServiceName}} -o json | jq -r '.status.loadBalancer.ingress[0].ip' )
+    #echo "INGRESS_HOST=${INGRESS_HOST}"
+    curl -k -vi --connect-to "::${INGRESS_HOST}:" {{ url }}
 
 test-ingress-http:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    INGRESS_HOST=$( kubectl get svc -n projectcontour {{ loadbalancerServiceName }} -o json | jq -r '.status.loadBalancer.ingress[0].ip' )
-    echo "INGRESS_HOST=${INGRESS_HOST}"
-    curl -v -k http://${INGRESS_HOST} -H 'Host: echo-ingress-http.example.com'
+    @{{ just_executable() }} test-url "http://echo-ingress-http.example.com"
 
 test-ingress-https:
-    #!/usr/bin/env bash
-    set -euo pipefail
+    @{{ just_executable() }} test-url "https://echo-ingress-https.example.com"
 
-    INGRESS_HOST=$( kubectl get svc -n projectcontour {{ loadbalancerServiceName }} -o json | jq -r '.status.loadBalancer.ingress[0].ip' )
-    echo "INGRESS_HOST=${INGRESS_HOST}"
-    curl -v -k https://${INGRESS_HOST} -H 'Host: echo-ingress-http.example.com'
-
+test-http:
+    @{{ just_executable() }} test-url "http://echo.example.com"
 test-https:
-    #!/usr/bin/env bash
-    set -euo pipefail
+    @{{ just_executable() }} test-url "https://echo.example.com"
 
-    INGRESS_HOST=$( kubectl get svc -n projectcontour envoy-contour -o json | jq -r '.status.loadBalancer.ingress[0].ip' )
-    echo "INGRESS_HOST=${INGRESS_HOST}"
-    curl -v -k https://${INGRESS_HOST} -H 'Host: echo.example.com'
 
 test-proxy-http:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    INGRESS_HOST=$( kubectl get svc -n projectcontour {{ loadbalancerServiceName }} -o json | jq -r '.status.loadBalancer.ingress[0].ip' )
-    echo "INGRESS_HOST=${INGRESS_HOST}"
-    curl -v -k http://${INGRESS_HOST} -H 'Host: echo-proxy.example.com'
+    @{{ just_executable() }} test-url "http://echo-proxy-http.example.com"
 
 
 test-proxy-https:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    INGRESS_HOST=$( kubectl get svc -n projectcontour {{ loadbalancerServiceName }} -o json | jq -r '.status.loadBalancer.ingress[0].ip' )
-    echo "INGRESS_HOST=${INGRESS_HOST}"
-    curl -v -k https://${INGRESS_HOST} -H 'Host: echo-proxy.example.com'
-
+    @{{ just_executable() }} test-url "https://echo-proxy-https.example.com"
+ 
 contour-add-helm-repo:
     helm repo add bitnami https://charts.bitnami.com/bitnami
-
-
 
 show-envoy-logs:
     kubectl logs -l app.kubernetes.io/component=envoy -c envoy -f
@@ -120,3 +103,13 @@ show-envoy-object-graph:
     sleep 1
     curl localhost:6060/debug/dag | dot -T png > target/contour-dag.png
     echo "view: target/contour-dag.png"
+
+forward-envoy-admin-interface:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # https://projectcontour.io/docs/1.29/troubleshooting/envoy-admin-interface/
+    # Get one of the pods that matches the Envoy daemonset
+    ENVOY_POD=$(kubectl -n projectcontour get pod -l app.kubernetes.io/component=envoy -o name | head -1)
+    # Do the port forward to that pod
+    echo  "get config with `curl http://127.0.0.1:9001/config_dump > target/envoy_config.json`"
+    kubectl -n projectcontour port-forward $ENVOY_POD 9001

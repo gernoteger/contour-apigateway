@@ -47,7 +47,11 @@ contour:
     #   name: fallback-secret-name
     #   namespace: projectcontour
   
-  # envoy:
-  #   image:
-  #     tag: 1.30.4-debian-12-r1 # https://hub.docker.com/r/bitnami/envoy/tags
-  #     #tag: 1.28
+  envoy:
+    logLevel: info # info warning
+    extraArgs:
+    - "--component-log-level" # https://www.envoyproxy.io/docs/envoy/latest/operations/cli#cmdoption-component-log-level
+    - "conn_handler:debug,connection:info"
+    image:
+      tag: 1.30.4-debian-12-r1 # https://hub.docker.com/r/bitnami/envoy/tags
+      #tag: 1.28

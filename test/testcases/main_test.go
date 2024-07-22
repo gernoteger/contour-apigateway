@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -76,7 +77,8 @@ func clientConfig() (*restclient.Config, error) {
 		kubeconfig = filepath.Join(homedir.HomeDir(), ".kube", "config")
 	}
 
-	files := strings.Split(kubeconfig, ":") // TODO: os spceific seperator
+	files := strings.Split(kubeconfig, ":") // TODO: os specific seperator
+	//TODO: absolute paths!!
 	return clienttools.NewNonInteractiveDeferredLoadingClientConfig(
 		// &clienttools.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath},
 		&clienttools.ClientConfigLoadingRules{Precedence: files},
@@ -123,18 +125,36 @@ func contourServiceIP(namespace, loadbalancerServiceName string) (string, error)
 func getEchoResponse(scheme, host string, hostname string) (*Echo, error) {
 	url := url.URL{
 		Scheme: scheme,
-		Host:   host,
+		Host:   hostname,
 		// Path:     "foo",
 		// RawQuery: "a=10",
 	}
 
-	c := http.Client{Timeout: 2 * time.Second}
+	// TODO: use https://github.com/golang/go/issues/22704#issuecomment-346537646
+	// TODO: fix this
+	dialer := &net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: true,
+	}
+
+	c := http.Client{
+		Timeout: 2 * time.Second,
+		Transport: &http.Transport{
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				// redirect all connections to 127.0.0.1
+				addr = host + addr[strings.LastIndex(addr, ":"):]
+				return dialer.DialContext(ctx, network, addr)
+			},
+		},
+	}
+
 	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Host = hostname // set header  fails!
+	// req.Host = hostname // set header  fails!
 
 	resp, err := c.Do(req)
 	if err != nil {
@@ -163,11 +183,12 @@ func TestGetHttpEcho(t *testing.T) {
 
 	namespace := "projectcontour" //TODO: get from k8s??
 
-	svcIP, err := contourServiceIP(namespace, "envoy-contour")
+	svcIP, err := contourServiceIP(namespace, "contour-envoy") //"envoy-contour"
+
 	assert.NoError(t, err)
 	assert.Regexp(t, "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+", svcIP)
 
-	echo, err := getEchoResponse("http", svcIP+":10080", "echo.projectcontour.io")
+	echo, err := getEchoResponse("http", svcIP, "echo-proxy-http.example.com:80")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, echo)
 
