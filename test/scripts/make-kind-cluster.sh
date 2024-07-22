@@ -138,5 +138,7 @@ if [[ "${SKIP_GATEWAY_API_INSTALL}" != "true" ]]; then
   ${KUBECTL} apply -f "${REPO}/examples/gateway/00-crds.yaml"
 fi
 
+if [[ "${SKIP_CRD_INSTALL}" != "true" ]]; then
 # Install Contour CRDs.
 ${KUBECTL} apply -f "${REPO}/examples/contour/01-crds.yaml"
+fi

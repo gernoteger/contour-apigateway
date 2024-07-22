@@ -1,0 +1,74 @@
+# Ingress by Gateway API
+{{ if .Values.test.enabled }}
+{{ if not .Values.gatewayprovisioner.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: echo-http
+  namespace: {{ .Release.Namespace }}
+
+spec:
+  rules:
+{{- range $domain:=.Values.ingress.domains }}
+  - host: "echo-ingress-http.{{ $domain }}"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: echo
+            port:
+              number: 80
+{{ end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: echo-https
+  namespace: {{ .Release.Namespace }}
+
+spec:
+  tls:
+{{- range $domain:=.Values.ingress.domains }}
+  - hosts:
+      - "echo-ingress-https.{{ $domain }}"
+{{ end }}
+    secretName: echo-ingress-cert # default-tls-cert
+  rules:
+{{- range $domain:=.Values.ingress.domains }}
+  - host: "echo-ingress-https.{{ $domain }}"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: echo
+            port:
+              number: 80
+{{ end }}
+
+---
+
+{{- range $domain:=.Values.ingress.domains }}
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: basic-{{ $domain | replace "." "-" }}
+spec:
+  virtualhost:
+    fqdn: "echo-proxy.{{ $domain }}"
+    tls:
+      secretName: echo-ingress-cert
+  routes:
+    - conditions:
+      - prefix: /
+      services:
+        - name: echo
+          port: 80
+{{ end }}
+
+{{ end }}
+{{ end }}

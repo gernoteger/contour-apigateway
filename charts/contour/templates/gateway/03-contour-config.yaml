@@ -1,3 +1,4 @@
+{{ if .Values.gatewayprovisioner.enabled }}
 {{ if not .Values.gatewayprovisioner.dynamic.enabled }}
 
 ---
@@ -12,4 +13,5 @@ data:
       gatewayRef:
         name: contour
         namespace: {{ .Release.Namespace }}
+{{ end }}
 {{ end }}

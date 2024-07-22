@@ -1,0 +1,26 @@
+
+# see: https://cert-manager.io/docs/usage/certificate/
+# https://cert-manager.io/docs/devops-tips/syncing-secrets-across-namespaces/
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name:  echo-ingress-cert
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName:  echo-ingress-cert
+ 
+  duration: 240h
+  renewBefore: 200h
+
+  usages:
+    - server auth
+  dnsNames:
+{{- range $domain:=.Values.ingress.domains }}
+    - "echo-ingress-https.{{ $domain }}"
+{{- end }}
+
+  issuerRef:
+    name: ca-issuer
+    kind: ClusterIssuer
+

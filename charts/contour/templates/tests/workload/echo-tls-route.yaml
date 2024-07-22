@@ -1,5 +1,6 @@
 # Ingress by Gateway API
 {{ if .Values.test.enabled }}
+{{ if .Values.gatewayprovisioner.enabled }}
 ---
 #https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1alpha2.TLSRoute
 apiVersion: gateway.networking.k8s.io/v1alpha2
@@ -16,7 +17,6 @@ spec:
     namespace: projectcontour
 
   hostnames:
-  - "echo.projectcontour.io" # fixed for wired tests
 {{- range $domain:=.Values.ingress.domains }}
   - "echo.{{ $domain }}"
 {{- end }}
@@ -26,4 +26,5 @@ spec:
       kind: Service
       port: 443 #http-echo: names not supported!! use frontend!
 
+{{ end }}
 {{ end }}
