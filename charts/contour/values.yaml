@@ -30,6 +30,10 @@ loadbalancer:
 contour:
   contour:
     manageCRDs: false
+    # image: #https://hub.docker.com/r/bitnami/contour
+    #   # tag: 1.29.1-debian-12-r3
+    #   #tag: 1.28
+
   configInline:
     tls:
       #   minimum TLS version that Contour will negotiate
@@ -42,3 +46,8 @@ contour:
         namespace: projectcontour # required!!
     #   name: fallback-secret-name
     #   namespace: projectcontour
+  
+  # envoy:
+  #   image:
+  #     tag: 1.30.4-debian-12-r1 # https://hub.docker.com/r/bitnami/envoy/tags
+  #     #tag: 1.28

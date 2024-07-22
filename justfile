@@ -7,6 +7,8 @@ skipCRDs:="false"
 
 helmSkipCRDS:="--skip-crds"
 
+helmNamespaceReleaseChartStanza:="--namespace projectcontour contour charts/contour"
+
 export CLUSTERNAME:="contourgatewayapi"
 export CERT_MANAGER_VERSION:="v1.15.1"
 export INGRESS_HOST:="localhost" #TODOD
@@ -30,10 +32,10 @@ install-contour-script:
      {{scripts}}/install-contour-release.sh {{contour_release}}
 
 template:
-    {{helm}} template {{ helmSkipCRDS }} example charts/contour --output-dir target/templated
+    {{helm}} template {{ helmSkipCRDS }} {{ helmNamespaceReleaseChartStanza }} --output-dir target/templated
 
 install: template
-    {{helm}} upgrade {{ helmSkipCRDS }} --create-namespace --install --namespace projectcontour contour charts/contour
+    {{helm}} upgrade {{ helmSkipCRDS }} --create-namespace --install {{ helmNamespaceReleaseChartStanza }}
 
 dependency-build:
     {{helm}} dependency build --namespace projectcontour charts/contour
@@ -94,11 +96,27 @@ test-proxy-https:
 contour-add-helm-repo:
     helm repo add bitnami https://charts.bitnami.com/bitnami
 
-show-envoy-dag:
-    echo "TODO:´code instructions for the graph!"
+
 
 show-envoy-logs:
     kubectl logs -l app.kubernetes.io/component=envoy -c envoy -f
 
 show-contour-logs:
     kubectl logs -l app.kubernetes.io/component=contour  -f
+
+show-envoy-object-graph:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # https://projectcontour.io/docs/1.29/troubleshooting/contour-graph/
+
+    mkdir -p target
+
+    trap 'kill 0' EXIT
+    
+    CONTOUR_POD=$(kubectl -n projectcontour get pod -l app.kubernetes.io/component=contour -o name | head -1)
+    echo "CONTOUR_POD=$CONTOUR_POD"
+    kubectl -n projectcontour port-forward $CONTOUR_POD 6060 &
+    sleep 1
+    curl localhost:6060/debug/dag | dot -T png > target/contour-dag.png
+    echo "view: target/contour-dag.png"

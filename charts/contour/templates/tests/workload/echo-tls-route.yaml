@@ -24,7 +24,7 @@ spec:
   - backendRefs: 
     - name: echo 
       kind: Service
-      port: 443 #http-echo: names not supported!! use frontend!
+      port: 443
 
 {{ end }}
 {{ end }}
