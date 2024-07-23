@@ -50,36 +50,36 @@ dependency-expand:
     tar -xzf charts/contour/charts/contour-*.tgz --directory target/dependencies
 
 # smoke tests
-#loadbalancerServiceName:="contour-envoy" # with helm/static?
-loadbalancerServiceName:="envoy-contour" # if gw-provisioner: envoy-contour !!
-test-url url:
+test-get-echo url:
     #!/usr/bin/env bash
     set -euo pipefail
 
     # assume only one ingress with loadbalancer!
     INGRESS_IP=$( kubectl get svc -o json | jq -r '[.items[] |select(.spec.type == "LoadBalancer")] | .[0].status.loadBalancer.ingress[0].ip')
-
-    echo "INGRESS_IP=${INGRESS_IP}"
-    curl -k -vi --connect-to "::${INGRESS_IP}:" {{ url }}
+    
+    VERBOSE=
+    #VERBOSE=-vi
+    #echo "INGRESS_IP=${INGRESS_IP}"
+    curl -ks ${VERBOSE} --connect-to "::${INGRESS_IP}:" {{ url }}
 
 test-ingress-http:
-    @{{ just_executable() }} test-url "http://echo-ingress-http.example.com"
+    @{{ just_executable() }} test-get-echo "http://echo-ingress-http.example.com"
 
 test-ingress-https:
-    @{{ just_executable() }} test-url "https://echo-ingress-https.example.com"
+    @{{ just_executable() }} test-get-echo "https://echo-ingress-https.example.com"
 
 test-http:
-    @{{ just_executable() }} test-url "http://echo.example.com"
+    @{{ just_executable() }} test-get-echo "http://echo.example.com"
 test-https:
-    @{{ just_executable() }} test-url "https://echo.example.com"
+    @{{ just_executable() }} test-get-echo "https://echo.example.com"
 
 
 test-proxy-http:
-    @{{ just_executable() }} test-url "http://echo-proxy-http.example.com"
+    @{{ just_executable() }} test-get-echo "http://echo-proxy-http.example.com"
 
 
 test-proxy-https:
-    @{{ just_executable() }} test-url "https://echo-proxy-https.example.com"
+    @{{ just_executable() }} test-get-echo "https://echo-proxy-https.example.com"
  
 contour-add-helm-repo:
     helm repo add bitnami https://charts.bitnami.com/bitnami
