@@ -2,6 +2,8 @@
 # see: https://cert-manager.io/docs/usage/certificate/
 # https://cert-manager.io/docs/devops-tips/syncing-secrets-across-namespaces/
 
+{{ if .Values.workload.ingress.enabled }}
+
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -24,3 +26,4 @@ spec:
     name: ca-issuer
     kind: ClusterIssuer
 
+{{ end }}

@@ -58,8 +58,8 @@ test-get-echo url:
     INGRESS_IP=$( kubectl get svc -o json | jq -r '[.items[] |select(.spec.type == "LoadBalancer")] | .[0].status.loadBalancer.ingress[0].ip')
     
     VERBOSE=
-    #VERBOSE=-vi
-    #echo "INGRESS_IP=${INGRESS_IP}"
+    VERBOSE=-vi
+    echo "INGRESS_IP=${INGRESS_IP}"
     curl -ks ${VERBOSE} --connect-to "::${INGRESS_IP}:" {{ url }}
 
 test-ingress-http:

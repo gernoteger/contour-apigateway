@@ -7,6 +7,15 @@ gatewayprovisioner:
   dynamic: 
     enabled: true
 
+workload:
+  ingress:
+    enabled: false
+  httpproxy:
+    enabled: false
+  gatewayapi:
+    enabled: true
+
+
 # common stuff
 ingress:
   domains:

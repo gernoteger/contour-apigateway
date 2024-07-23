@@ -3,7 +3,7 @@
 kind: GatewayClass
 apiVersion: gateway.networking.k8s.io/v1
 metadata:
-  name: example1
+  name: example
 spec:
   controllerName: projectcontour.io/gateway-controller
 
@@ -27,12 +27,11 @@ spec: # https://projectcontour.io/docs/main/config/api/#projectcontour.io/v1alph
     replicas: 1 # debugging
   envoy: # https://projectcontour.io/docs/main/config/api/#projectcontour.io/v1alpha1.EnvoySettings
     workloadType: Deployment #???? TODO
-    replicas: 1 # debugging
-    logLevel: debug # info debug trace
+    replicas: 1 # debugging friendly
+    logLevel: info # info debug trace
     networkPublishing:
       serviceAnnotations:
-        foo: bar
-        my-annotation: somevalue
-        another: v2
+        foo: bar # e.g. aws loadbalancer annotations would go here
+
 {{ end }}
 {{ end }}

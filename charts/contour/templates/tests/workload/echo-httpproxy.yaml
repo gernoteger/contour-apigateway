@@ -1,0 +1,42 @@
+# Ingress by Gateway API
+{{ if .Values.test.enabled }}
+{{ if .Values.workload.httpproxy.enabled }}
+
+{{- range $domain:=.Values.ingress.domains }}
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: basic-http-{{ $domain | replace "." "-" }}
+spec:
+  virtualhost:
+    fqdn: "echo-proxy-http.{{ $domain }}"
+
+  routes:
+    - conditions:
+      - prefix: /
+      services:
+        - name: echo
+          port: 80
+{{ end }}
+---
+{{- range $domain:=.Values.ingress.domains }}
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: basic-https-{{ $domain | replace "." "-" }}
+spec:
+  virtualhost:
+    fqdn: "echo-proxy-https.{{ $domain }}"
+    tls:
+      secretName: default-tls-cert # echo-ingress-cert
+  routes:
+    - conditions:
+      - prefix: /
+      services:
+        - name: echo
+          port: 80
+{{ end }}
+
+{{ end }}
+{{ end }}
