@@ -2,7 +2,7 @@ contour_release:="v1.29.1"
 scripts:="test"/"scripts"
 helm:="helm"
 
-skipGatewayApi:="true"
+skipGatewayApi:="false"
 skipCRDs:="false"
 
 helmSkipCRDS:="--skip-crds"
@@ -50,14 +50,17 @@ dependency-expand:
     tar -xzf charts/contour/charts/contour-*.tgz --directory target/dependencies
 
 # smoke tests
-loadbalancerServiceName:="contour-envoy" # if gw-provisioner: envoy-contour !!
+#loadbalancerServiceName:="contour-envoy" # with helm/static?
+loadbalancerServiceName:="envoy-contour" # if gw-provisioner: envoy-contour !!
 test-url url:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    INGRESS_HOST=$( kubectl get svc -n projectcontour {{loadbalancerServiceName}} -o json | jq -r '.status.loadBalancer.ingress[0].ip' )
-    #echo "INGRESS_HOST=${INGRESS_HOST}"
-    curl -k -vi --connect-to "::${INGRESS_HOST}:" {{ url }}
+    # assume only one ingress with loadbalancer!
+    INGRESS_IP=$( kubectl get svc -o json | jq -r '[.items[] |select(.spec.type == "LoadBalancer")] | .[0].status.loadBalancer.ingress[0].ip')
+
+    echo "INGRESS_IP=${INGRESS_IP}"
+    curl -k -vi --connect-to "::${INGRESS_IP}:" {{ url }}
 
 test-ingress-http:
     @{{ just_executable() }} test-url "http://echo-ingress-http.example.com"

@@ -1,16 +1,13 @@
-test:
-  enabled: true
 
-  image: ghcr.io/gernoteger/contour-test
-
+# Deployment options
 contourhelm:
-  enabled: true
-  
+  enabled: false  
 gatewayprovisioner:
-  enabled: false
+  enabled: true
   dynamic: 
-    enabled: false
+    enabled: true
 
+# common stuff
 ingress:
   domains:
     #- projectcontour.io # fixed for hardwired tests
@@ -26,6 +23,14 @@ loadbalancer:
     port: 443
   tls:
     port: 8443
+
+test:
+  enabled: true
+
+  image: ghcr.io/gernoteger/contour-test
+
+# only used with helm deployment!
+
 
 contour:
   contour:
