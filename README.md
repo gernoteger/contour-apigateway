@@ -45,7 +45,7 @@ graph TD
         LE1-->|80 http|HTTPRoute3[...];
         LE2-->|443 tls|TLSRouteEdge["TLSRoute *.example.com"];
         LE2-->TLSRoute1["TLSRoute echo-passthrough1.example.com"];
-        LE2-->TLSRoute1["TLSRoute echo-passthrough2.example.com"];
+        LE2-->TLSRoute2["TLSRoute echo-passthrough2.example.com"];
         TLSRouteEdge-->GWInternal[/"Internal GW - Service ClusterIP"\];
     end
     subgraph internal
