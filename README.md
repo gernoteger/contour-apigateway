@@ -51,7 +51,7 @@ graph TD
     subgraph internal
         GWInternal-->LI1[listener 443 https];
         LI1-->|443 https|HTTPRouteHttps1["https://echo-edge1.example.com"];
-        LI1-->|443 https|HTTPRouteHttps1["https://echo-edge2.example.com"];
+        LI1-->|443 https|HTTPRouteHttps2["https://echo-edge2.example.com"];
     end
 ```
 
