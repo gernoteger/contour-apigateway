@@ -1,4 +1,4 @@
-# Gatewayapi Showcase - Uisng Contour?
+# Gatewayapi Showcase - Using Contour?
 
 Implements [Contour](https://projectcontour.io) ingress controller featuring [Gateway API](https://gateway-api.sigs.k8s.io/) 
 
@@ -35,20 +35,40 @@ Assume those services.
 
 Idea1, produces 1 extra network hop for https edge termination
 ```mermaid
-graph TD
-    R[Request]-->GWEdge[/"Gateway http(s)://example.com"\];
+flowchart TD
+    
+    subgraph net
+        R1[Request http://*.example.com]
+        R2[Request https://*.example.com]
+    end 
+
     subgraph edge
+        R1==>LE1
+
+%% positioning
+        R1~~~GWEdge
+        R2~~~GWEdge
+
+        GWEdge(["Edge Gateway"])
+
         GWEdge-->LE1[listener 80 http];
         GWEdge-->LE2[listener 443 tls];
+        R2==>LE2
+
+
         LE1-->|80 http|HTTPRoute1[HTTPRoute echo-edge1.example.com];
         LE1-->|80 http|HTTPRoute2[HTTPRoute echo-passthrough1.example.com];
         LE1-->|80 http|HTTPRoute3[...];
         LE2-->|443 tls|TLSRouteEdge["TLSRoute *.example.com"];
         LE2-->TLSRoute1["TLSRoute echo-passthrough1.example.com"];
         LE2-->TLSRoute2["TLSRoute echo-passthrough2.example.com"];
-        TLSRouteEdge-->GWInternal[/"Internal GW - Service ClusterIP"\];
+        
     end
     subgraph internal
+        GWInternal(["Internal GW - Service ClusterIP"])
+
+        TLSRouteEdge ~~~ GWInternal
+        TLSRouteEdge ==> LI1
         GWInternal-->LI1[listener 443 https];
         LI1-->|443 https|HTTPRouteHttps1["https://echo-edge1.example.com"];
         LI1-->|443 https|HTTPRouteHttps2["https://echo-edge2.example.com"];
