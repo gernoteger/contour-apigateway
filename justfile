@@ -91,6 +91,8 @@ test-http:
 test-https:
     @{{ just_executable() }} test-get-echo "https://echo.example.com"
 
+test-tlsroute:
+    @{{ just_executable() }} test-get-echo "https://echo-tls.example.com" 
 
 test-proxy-http:
     @{{ just_executable() }} test-get-echo "http://echo-proxy-http.example.com"

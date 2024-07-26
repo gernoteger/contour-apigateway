@@ -1,6 +1,4 @@
 # our self-signed ca
-#TODO: where does this belong??
-
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
@@ -30,4 +28,15 @@ spec:
     name: selfsigned-issuer
     kind: Issuer
     group: cert-manager.io
+
+---
+# use this to issue certificates used internally
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: ca-issuer
+  namespace: {{ .Values.certManager.namespace}}
+spec:
+  ca:
+    secretName: cluster-ca-secret
 

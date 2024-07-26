@@ -1,0 +1,39 @@
+{{ if .Values.test.enabled }}
+{{ if .Values.workload.gatewayapi.enabled }}
+---
+kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: echo-http
+  labels:
+    app: echo
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: edge
+    namespace: projectcontour
+
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: internal
+    namespace: projectcontour
+
+  hostnames:
+  - "echo.projectcontour.io" # fixed for wired tests
+{{- range $domain:=.Values.ingress.domains }}
+  - "echo.{{ $domain }}"
+{{- end }}
+
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - kind: Service
+      name: echo
+      port: 80
+
+{{ end }}
+{{ end }}

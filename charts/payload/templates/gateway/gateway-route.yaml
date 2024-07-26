@@ -1,30 +1,33 @@
 # Ingress by Gateway API
-{{ if .Values.test.enabled }}
-{{ if .Values.workload.gatewayapi.enabled }}
+
 ---
 #https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1alpha2.TLSRoute
 apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: TLSRoute
 metadata:
-  name: echo-tls
+  name: edge2internal
   namespace: {{ .Release.Namespace }}
+  # Description: gateway to edge->internal
 
 spec:
   parentRefs:
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: edge
-    namespace: {{ .Release.Namespace }}
+    namespace: projectcontour
 
   hostnames:
 {{- range $domain:=.Values.ingress.domains }}
-  - "echo-tls.{{ $domain }}"
+  - "*.{{ $domain }}"
 {{- end }}
   rules:
   - backendRefs: 
-    - name: echo 
+    - name: envoy-internal 
       kind: Service
       port: 443
 
-{{ end }}
-{{ end }}
+    # not allowed!! Could be enhancement!!
+    # - name: envoy-internal 
+    #   group: gateway.networking.k8s.io
+    #   kind: Gateway
+    #   port: 443
