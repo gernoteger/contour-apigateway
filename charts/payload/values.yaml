@@ -1,0 +1,37 @@
+# common stuff
+ingress:
+  domains:
+    #- projectcontour.io # fixed for hardwired tests
+    - example.com
+
+certManager:
+  namespace: cert-manager
+  
+workload:
+  ingress: # legacy1
+    enabled: false
+  httpproxy: # legacy2
+    enabled: false
+  gatewayapi:
+    enabled: true
+
+loadbalancer:
+  http:
+    port: 80
+  https:
+    port: 443
+  tls:
+    port: 8443
+
+test:
+  enabled: true
+
+  image: ghcr.io/gernoteger/contour-test
+
+gatewayClass: default
+
+parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: contour
+    namespace: projectcontour

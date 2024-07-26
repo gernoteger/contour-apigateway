@@ -7,19 +7,12 @@ gatewayprovisioner:
   dynamic: 
     enabled: true
 
-workload:
-  ingress:
-    enabled: false
-  httpproxy:
-    enabled: false
-  gatewayapi:
-    enabled: true
 
 
 # common stuff
 ingress:
-  domains:
-    #- projectcontour.io # fixed for hardwired tests
+  domain: example.com
+  domains: # TODO:remove!
     - example.com
 
 certManager:

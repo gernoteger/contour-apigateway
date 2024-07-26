@@ -7,7 +7,8 @@ skipCRDs:="false"
 
 helmSkipCRDS:="--skip-crds"
 
-helmNamespaceReleaseChartStanza:="--namespace projectcontour contour charts/contour"
+#helmNamespaceReleaseChartStanza:="--namespace projectcontour contour charts/contour"
+helmNamespaceReleaseChartStanza:="--namespace projectcontour ${chart} charts/${chart} "
 
 export CLUSTERNAME:="contourgatewayapi"
 export CERT_MANAGER_VERSION:="v1.15.1"
@@ -18,27 +19,44 @@ export INGRESS_HOST:="localhost" #TODOD
     echo "SKIP_GATEWAY_API_INSTALL: ${SKIP_GATEWAY_API_INSTALL:-## NOT SET ##}"
     echo "SKIP_CRD_INSTALL: ${SKIP_CRD_INSTALL:-## NOT SET ##}"
 
-
-
+charts:="contour payload"
 clean-cluster:
     {{scripts}}/cleanup.sh
 
 clean: clean-cluster
     rm -rf target/
 
+start-cluster: make-kind-cluster
+stop-cluster: stop-kind-cluster
+    
 make-kind-cluster:
      SKIP_GATEWAY_API_INSTALL={{ skipGatewayApi }} SKIP_CRD_INSTALL={{ skipCRDs }} {{scripts}}/make-kind-cluster.sh
      #SKIP_GATEWAY_API_INSTALL={{ skipGatewayApi }} SKIP_CRD_INSTALL{{scripts}}/make-kind-cluster.sh
+
+stop-kind-cluster:
+    kind delete contourgatewayapi
 
 install-contour-script:
      {{scripts}}/install-contour-release.sh {{contour_release}}
 
 template:
-    {{helm}} template {{ helmSkipCRDS }} {{ helmNamespaceReleaseChartStanza }} --output-dir target/templated
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    for chart in  {{ charts }}; do
+        echo "== ${chart} =="
+        rm -rf  target/templated/${chart}
+        {{helm}} template {{ helmSkipCRDS }} {{ helmNamespaceReleaseChartStanza }} --output-dir target/templated/${chart}
+    done
 
 install: template
-    {{helm}} upgrade {{ helmSkipCRDS }} --create-namespace --install {{ helmNamespaceReleaseChartStanza }}
+    #!/usr/bin/env bash
+    set -euo pipefail
 
+    for chart in  {{ charts }}; do
+        echo "== ${chart} =="    
+        {{helm}} upgrade {{ helmSkipCRDS }} --create-namespace --install {{ helmNamespaceReleaseChartStanza }}
+    done
 dependency-build:
     {{helm}} dependency build --namespace projectcontour charts/contour
 

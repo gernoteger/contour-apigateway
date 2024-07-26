@@ -11,7 +11,7 @@ spec:
   parentRefs:
   - group: gateway.networking.k8s.io
     kind: Gateway
-    name: contour
+    name: edge
     namespace: projectcontour
   hostnames:
   - "echo.projectcontour.io" # fixed for wired tests
