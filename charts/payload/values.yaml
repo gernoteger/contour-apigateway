@@ -6,12 +6,12 @@ ingress:
 
 certManager:
   namespace: cert-manager
-  
+
 workload:
   ingress: # legacy1
-    enabled: false
+    enabled: true
   httpproxy: # legacy2
-    enabled: false
+    enabled: true
   gatewayapi:
     enabled: true
 
@@ -28,10 +28,10 @@ test:
 
   image: ghcr.io/gernoteger/contour-test
 
-gatewayClass: default
+# gatewayClass: default
 
-parentRefs:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: contour
-    namespace: projectcontour
+# parentRefs:
+#   - group: gateway.networking.k8s.io
+#     kind: Gateway
+#     name: contour
+#     namespace: projectcontour
