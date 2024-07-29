@@ -65,6 +65,14 @@ dependency-expand:
     mkdir -p target/dependencies
     tar -xzf charts/contour/charts/contour-*.tgz --directory target/dependencies
 
+# go tests
+test:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd  test/testcases
+    # go test -v 
+    {{ just_executable() }} test
+
 # smoke tests
 test-get-echo url:
     #!/usr/bin/env bash
