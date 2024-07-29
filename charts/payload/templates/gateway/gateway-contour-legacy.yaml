@@ -1,0 +1,25 @@
+
+---
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: contour-legacy
+  namespace: {{ .Release.Namespace }}
+spec:
+  gatewayClassName: default-internal
+  listeners:
+    - name: legacy-https
+      # https://projectcontour.io/docs/1.29/config/gateway-api/#routing-with-httpproxy-or-ingress
+      protocol: projectcontour.io/https
+      port: {{ .Values.loadbalancer.https.port }}
+
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: legacy-http # TODO: this listener is not wired; why does it work?? Needed to avoid errors!
+      # https://projectcontour.io/docs/1.29/config/gateway-api/#routing-with-httpproxy-or-ingress
+      protocol: HTTP
+      port: {{ .Values.loadbalancer.http.port }}
+
+      allowedRoutes:
+        namespaces:

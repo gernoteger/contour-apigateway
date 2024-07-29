@@ -25,11 +25,4 @@ spec:
         namespaces:
           from: All
 
-    - name: legacy # match Ingress and HTTPProxy, This works ONLY with contour!
-      # https://projectcontour.io/docs/1.29/config/gateway-api/#routing-with-httpproxy-or-ingress
-      protocol: projectcontour.io/https # not working here!
-      port: {{ .Values.loadbalancer.https.port }}
-
-      allowedRoutes:
-        namespaces:
-          from: All
+ 

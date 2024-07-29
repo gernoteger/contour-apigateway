@@ -8,7 +8,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,7 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	clienttools "k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -33,6 +31,13 @@ import (
 	// _ "k8s.io/client-go/plugin/pkg/client/auth/azure"
 	// _ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	// _ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+	// gateway API
+	//"github.com/gatwayapi/client"
+	//sigs.k8s.io/controller-runtime/pkg/client"
+	//"sigs.k8s.io/controller-runtime/pkg/client"
+
+	// sigs.k8s.io/gateway-api/pkg/client/clientset/versioned
+	gatewayapi_client "sigs.k8s.io/gateway-api/pkg/client/clientset/versioned"
 )
 
 type Echo struct {
@@ -59,6 +64,7 @@ type Echo struct {
 		Servername string
 	}
 	// TODO: client cert?
+	ClientCertificate map[string]string `json:"clientCertificate,omitempty"`
 }
 
 // return  client config
@@ -86,49 +92,55 @@ func clientConfig() (*restclient.Config, error) {
 		&clienttools.ConfigOverrides{}).ClientConfig()
 }
 
-func clientSet() (*kubernetes.Clientset, error) {
-	config, err := clientConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	// create the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-
-	return clientset, err
-}
-
-func contourServiceIP(namespace, loadbalancerServiceName string) (string, error) {
-
-	svcHost := os.Getenv("TARGET_SERVICE_HOST")
-	if svcHost != "" {
-		return svcHost, nil
-	}
-	clientset, err := clientSet()
-	if err != nil {
-		return "", err
-	}
+func gatewayAddress(namespace, gatewayName string) (string, error) {
 
 	ctx := context.TODO()
 
-	lbService, err := clientset.CoreV1().Services(namespace).Get(ctx, loadbalancerServiceName, metav1.GetOptions{})
+	config, err := clientConfig()
 	if err != nil {
 		return "", err
 	}
 
-	svc_ingress := lbService.Status.LoadBalancer.Ingress[0]
-	// svcIP = svc_ingress.IP
-	// svcPorts := lbService.Spec.Ports
+	c2, err := gatewayapi_client.NewForConfig(config)
+	if err != nil {
+		return "", err
+	}
+	gw, err := c2.GatewayV1().Gateways(namespace).Get(ctx, gatewayName, metav1.GetOptions{})
 
-	return svc_ingress.IP, nil
+	if err != nil {
+		return "", err
+	}
+	ip := gw.Status.Addresses[0].Value
+
+	return ip, nil
 }
 
-func getEchoResponse(scheme, connectionHost string, urlHost string) (*Echo, error) {
-	url := url.URL{
-		Scheme: scheme,
-		Host:   urlHost,
-	}
+// func contourServiceIP(namespace, loadbalancerServiceName string) (string, error) {
 
+// 	svcHost := os.Getenv("TARGET_SERVICE_HOST")
+// 	if svcHost != "" {
+// 		return svcHost, nil
+// 	}
+// 	clientset, err := clientSet()
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	ctx := context.TODO()
+
+// 	lbService, err := clientset.CoreV1().Services(namespace).Get(ctx, loadbalancerServiceName, metav1.GetOptions{})
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	svc_ingress := lbService.Status.LoadBalancer.Ingress[0]
+// 	// svcIP = svc_ingress.IP
+// 	// svcPorts := lbService.Spec.Ports
+
+// 	return svc_ingress.IP, nil
+// }
+
+func getEchoResponse(connectionHost string, testUrl string) (*Echo, error) {
 	dialer := &net.Dialer{
 		Timeout:   2 * time.Minute,
 		KeepAlive: 30 * time.Second,
@@ -146,7 +158,7 @@ func getEchoResponse(scheme, connectionHost string, urlHost string) (*Echo, erro
 		},
 	}
 
-	req, err := http.NewRequest("GET", url.String(), nil)
+	req, err := http.NewRequest("GET", testUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -174,33 +186,60 @@ func getEchoResponse(scheme, connectionHost string, urlHost string) (*Echo, erro
 	return &echo, err
 }
 
-func TestGetHttpProxyEcho(t *testing.T) {
-
+func assertGatewayAddress(t *testing.T) (string, error) {
 	namespace := "projectcontour" //TODO: get from k8s??
-
-	svcIP, err := contourServiceIP(namespace, "contour-envoy") //"envoy-contour"
-
+	svcIP, err := gatewayAddress(namespace, "edge")
 	assert.NoError(t, err)
 	assert.Regexp(t, "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+", svcIP)
 
-	echo, err := getEchoResponse("http", svcIP, "echo-proxy-http.example.com:80")
-	assert.NoError(t, err)
-	assert.NotEmpty(t, echo)
-
-	assert.Regexp(t, "^echo-", echo.Os.Hostname)
+	return svcIP, err
 }
 
-func TestGetHttpsProxyEcho(t *testing.T) {
-	// t.Skip()
-	namespace := "projectcontour" //TODO: get from k8s??
+func assertEchoResponse(t *testing.T, svcIP string, url string) (Echo, error) {
 
-	svcIP, err := contourServiceIP(namespace, "contour-envoy") //"envoy-contour"
+	echo, err := getEchoResponse(svcIP, url)
 	assert.NoError(t, err)
-	assert.Regexp(t, "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+", svcIP)
+	if assert.NotEmpty(t, echo) {
+		assert.Regexp(t, "^echo-", echo.Os.Hostname)
+	}
 
-	echo, err := getEchoResponse("https", svcIP, "echo-proxy-https.example.com:443")
-	assert.NoError(t, err)
-	assert.NotEmpty(t, echo)
+	return *echo, err
+}
 
-	assert.Regexp(t, "^echo-", echo.Os.Hostname)
+func TestGetHttpProxyEcho(t *testing.T) {
+	svcIP, err := assertGatewayAddress(t)
+	if err != nil {
+		assertEchoResponse(t, svcIP, "http://echo-proxy-http.example.com")
+		assertEchoResponse(t, svcIP, "https://echo-proxy-http.example.com")
+	}
+}
+
+func TestIngreessEcho(t *testing.T) {
+
+	svcIP, err := assertGatewayAddress(t)
+	if err == nil {
+		assertEchoResponse(t, svcIP, "https://echo-ingress-https.example.com")
+		assertEchoResponse(t, svcIP, "http://echo-ingress-https.example.com")
+	}
+
+}
+
+func TestHTTPRouteEcho(t *testing.T) {
+
+	svcIP, err := assertGatewayAddress(t)
+	if err == nil {
+		assertEchoResponse(t, svcIP, "https://echo.example.com")
+		assertEchoResponse(t, svcIP, "https://echo.example.com")
+	}
+}
+
+func TestTLSRouteEcho(t *testing.T) {
+
+	svcIP, err := assertGatewayAddress(t)
+	if err == nil {
+		echo, err := assertEchoResponse(t, svcIP, "https://echo-tls.example.com") // TODO: addd test for client certificate
+		if err == nil {
+			assert.Empty(t, echo.ClientCertificate)
+		}
+	}
 }

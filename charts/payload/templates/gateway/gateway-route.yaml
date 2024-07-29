@@ -31,3 +31,27 @@ spec:
     #   group: gateway.networking.k8s.io
     #   kind: Gateway
     #   port: 443
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: internal2contour-legacy
+  namespace: {{ .Release.Namespace }}
+  # Description: gateway to internal->legacy
+
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: internal # upstream gateway
+    namespace: projectcontour
+
+  hostnames:
+{{- range $domain:=.Values.ingress.domains }}
+  - "*.{{ $domain }}"
+{{- end }}
+  rules:
+  - backendRefs: 
+    - name: envoy-contour-legacy # donstream gateway
+      kind: Service
+      port: 443
