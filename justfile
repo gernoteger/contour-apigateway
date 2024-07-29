@@ -20,10 +20,8 @@ export INGRESS_HOST:="localhost" #TODOD
     echo "SKIP_CRD_INSTALL: ${SKIP_CRD_INSTALL:-## NOT SET ##}"
 
 charts:="contour payload"
-clean-cluster:
-    {{scripts}}/cleanup.sh
 
-clean: clean-cluster
+clean: stop-kind-cluster
     rm -rf target/
 
 start-cluster: make-kind-cluster
@@ -34,7 +32,7 @@ make-kind-cluster:
      #SKIP_GATEWAY_API_INSTALL={{ skipGatewayApi }} SKIP_CRD_INSTALL{{scripts}}/make-kind-cluster.sh
 
 stop-kind-cluster:
-    kind delete contourgatewayapi
+    {{scripts}}/cleanup.sh # uses  ${CLUSTERNAME}
 
 install-contour-script:
      {{scripts}}/install-contour-release.sh {{contour_release}}

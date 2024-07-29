@@ -78,6 +78,9 @@ flowchart TD
 > [!TIP]
 > Create a helm chart for the use case + one for the GW implementations
 
+# Missing
+- GRPCRoute
+- Observability
 # Links
 - https://projectcontour.io/docs/1.29/config/gateway-api/
 - https://github.com/projectcontour/contour - upstream 
