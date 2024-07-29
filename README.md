@@ -35,44 +35,56 @@ Assume those services.
 
 Idea1, produces 1 extra network hop for https edge termination
 ```mermaid
-flowchart TD
+      flowchart TD
     
-    subgraph net
-        R1[Request http://*.example.com]
-        R2[Request https://*.example.com]
-    end 
+      subgraph net
+          R1[Request http://*.example.com]
+          R2[Request https://*.example.com]
+      end 
+  
+      subgraph edge
+          R1==>LE1
+  
+  %% positioning
+          R1~~~GWEdge
+          R2~~~GWEdge
+  
+          GWEdge(["Edge Gateway"])
+  
+          GWEdge-->LE1[listener 80 http];
+          GWEdge-->LE2[listener 443 tls];
+          R2==>LE2
+  
+  
+          LE1-->|80 http|HTTPRoute1[HTTPRoute echo-edge1.example.com];
+          LE1-->|80 http|HTTPRoute2[HTTPRoute echo-passthrough1.example.com];
+          LE1-->|80 http|HTTPRoute3[...];
+          LE2-->|443 tls|TLSRouteEdge["TLSRoute *.example.com"];
+          LE2-->TLSRoute1["TLSRoute echo-passthrough1.example.com"];
+          LE2-->TLSRoute2["TLSRoute echo-passthrough2.example.com"];
+          
+      end
+      subgraph internal
+          GWInternal(["Internal GW - Service ClusterIP"])
+  
+          TLSRouteEdge ~~~ GWInternal
+          TLSRouteEdge ==> LI1
+          GWInternal-->LI1[listener 443 https];
+          LI1-->|443 https|HTTPRouteHttps1["https://echo-edge1.example.com"];
+          LI1-->|443 https|HTTPRouteHttps2["https://echo-edge2.example.com"];
+          LI1-->|443 tls|TLSRouteLegacy["TLSRoute *.example.com"];
+      end
 
-    subgraph edge
-        R1==>LE1
+      subgraph legacy
+        GWLegacy(["Internal GW for Legacy API- Service ClusterIP"])
 
-%% positioning
-        R1~~~GWEdge
-        R2~~~GWEdge
+        TLSRouteLegacy ~~~ GWLegacy
+        TLSRouteLegacy ==> LL1
+        GWLegacy-->LL1[listener 443 https];
+        LL1-->|443 https|IngressHTTPS["https://echo-ingress-https.example.com"];
+        LL1-->|443 https|HTTPProxyHTTPS["https://echo-httpproxy-https.example.com"];
+      end
 
-        GWEdge(["Edge Gateway"])
-
-        GWEdge-->LE1[listener 80 http];
-        GWEdge-->LE2[listener 443 tls];
-        R2==>LE2
-
-
-        LE1-->|80 http|HTTPRoute1[HTTPRoute echo-edge1.example.com];
-        LE1-->|80 http|HTTPRoute2[HTTPRoute echo-passthrough1.example.com];
-        LE1-->|80 http|HTTPRoute3[...];
-        LE2-->|443 tls|TLSRouteEdge["TLSRoute *.example.com"];
-        LE2-->TLSRoute1["TLSRoute echo-passthrough1.example.com"];
-        LE2-->TLSRoute2["TLSRoute echo-passthrough2.example.com"];
-        
-    end
-    subgraph internal
-        GWInternal(["Internal GW - Service ClusterIP"])
-
-        TLSRouteEdge ~~~ GWInternal
-        TLSRouteEdge ==> LI1
-        GWInternal-->LI1[listener 443 https];
-        LI1-->|443 https|HTTPRouteHttps1["https://echo-edge1.example.com"];
-        LI1-->|443 https|HTTPRouteHttps2["https://echo-edge2.example.com"];
-    end
 ```
 
 > [!TIP]
