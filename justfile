@@ -8,18 +8,19 @@ skipCRDs:="false"
 helmSkipCRDS:="--skip-crds"
 
 #helmNamespaceReleaseChartStanza:="--namespace projectcontour contour charts/contour"
-helmNamespaceReleaseChartStanza:="--namespace projectcontour ${chart} charts/${chart} "
+#helmNamespaceReleaseChartStanza:="--namespace projectcontour ${chart} charts/${chart} "
 
 export CLUSTERNAME:="contourgatewayapi"
 export CERT_MANAGER_VERSION:="v1.15.1"
-export INGRESS_HOST:="localhost" #TODOD
+export INGRESS_HOST:="localhost" #TODO
+
 @info:
     echo "contour_release={{contour_release}}"
     echo "CLUSTERNAME: ${CLUSTERNAME:-## NOT SET ##}"
     echo "SKIP_GATEWAY_API_INSTALL: ${SKIP_GATEWAY_API_INSTALL:-## NOT SET ##}"
     echo "SKIP_CRD_INSTALL: ${SKIP_CRD_INSTALL:-## NOT SET ##}"
 
-charts:="contour payload"
+# charts:="contour payload"
 
 clean: stop-kind-cluster
     rm -rf target/
@@ -39,33 +40,82 @@ install-contour-script:
      {{scripts}}/install-contour-release.sh {{contour_release}}
 
 template:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    for chart in  {{ charts }}; do
-        echo "== ${chart} =="
-        rm -rf  target/templated/${chart}
-        {{helm}} template {{ helmSkipCRDS }} {{ helmNamespaceReleaseChartStanza }} --output-dir target/templated/${chart}
-    done
+    rm -rf  target/templated
+    {{ just_executable() }} template-chart projectcontour contour
+    {{ just_executable() }} template-chart projectcontour payload
+    {{ just_executable() }} template-chart istio-system istio
 
 install: template
+    {{ just_executable() }} install-chart projectcontour contour
+    {{ just_executable() }} install-chart projectcontour payload
+    {{ just_executable() }} install-chart istio-system istio
+
+dependency-update:
+    {{ just_executable() }} dependency-update-chart projectcontour contour
+    {{ just_executable() }} dependency-update-chart projectcontour payload
+    {{ just_executable() }} dependency-update-chart istio-system istio
+
+
+template-chart namespace chart:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    for chart in  {{ charts }}; do
-        echo "== ${chart} =="    
-        {{helm}} upgrade {{ helmSkipCRDS }} --create-namespace --install {{ helmNamespaceReleaseChartStanza }}
-    done
-    
-dependency-build:
-    {{helm}} dependency build --namespace projectcontour charts/contour
+    rm -rf  target/templated/{{ chart }}
+    {{helm}} template {{ helmSkipCRDS }} --namespace {{ namespace }} {{ chart }} charts/{{ chart }} --output-dir target/templated/{{ chart }}
 
-dependency-update:
-    {{helm}} dependency update --namespace projectcontour charts/contour
+install-chart namespace chart:
+    {{helm}} upgrade {{ helmSkipCRDS }} --create-namespace --install --namespace {{ namespace }} {{ chart }} charts/{{ chart }}
+
+# dependency-build:
+#     {{helm}} dependency build --namespace projectcontour charts/contour
+
+
+dependency-update-chart namespace chart:
+    {{helm}} dependency update --namespace {{ namespace }} charts/{{ chart }}
 
 dependency-expand:
     mkdir -p target/dependencies
     tar -xzf charts/contour/charts/contour-*.tgz --directory target/dependencies
+
+
+# istio
+#https://istio.io/latest/docs/setup/install/helm/
+install-istio-helm-repo:
+    helm repo add istio https://istio-release.storage.googleapis.com/charts
+    helm repo update
+
+install-istio-ctl: 
+    # https://istio.io/latest/docs/ops/diagnostic-tools/istioctl/
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd target
+    curl -sL https://istio.io/downloadIstioctl | sh -
+
+
+
+# https://github.com/istio/istio/tree/master/manifests/charts/istio-control/istio-discovery
+install-istio-helm: # TODO: just a test # see https://istio.io/latest/docs/setup/install/helm/
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    helm upgrade --install istio-base istio/base -n istio-system --create-namespace --set defaultRevision=default
+
+    # check deployment success
+    #helm ls -n istio-system | grep -ic deployed
+
+    echo "installing discovery service..."
+    # TODO: how to configure?
+    # https://github.com/istio/istio/tree/master/manifests/charts/istio-control/istio-discovery
+    # nned toenable TLSRoute 
+    # extraContainerArgs
+    #helm install istiod istio/istiod -n istio-system --wait 
+
+    echo "istio config:"
+    kubectl get cm istio -o json | jq -r .data.mesh
+
+install-istio-istioctl: # TODO: for testing
+    # namspaces are ignored!
+    istioctl install -y --set profile=minimal --namespace default2 --istioNamespace istio-system2 -f istioconfig.yaml
 
 # go tests
 test:
@@ -123,7 +173,6 @@ show-envoy-object-graph:
     set -euo pipefail
 
     # https://projectcontour.io/docs/1.29/troubleshooting/contour-graph/
-
     mkdir -p target
 
     trap 'kill 0' EXIT

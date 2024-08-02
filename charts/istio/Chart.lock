@@ -1,0 +1,6 @@
+dependencies:
+- name: contour
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.2.9
+digest: sha256:25d76a5739297157247d11afdebd8bfa50a7b19c881bbd09c0ea5d92ae070863
+generated: "2024-07-22T07:20:04.041058508+02:00"

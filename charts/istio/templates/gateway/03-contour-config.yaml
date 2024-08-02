@@ -1,0 +1,17 @@
+{{ if .Values.gatewayprovisioner.enabled }}
+{{ if not .Values.gatewayprovisioner.dynamic.enabled }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contour
+  namespace: {{ .Release.Namespace }}
+data:
+  contour.yaml: |
+    gateway:
+      gatewayRef:
+        name: contour
+        namespace: {{ .Release.Namespace }}
+{{ end }}
+{{ end }}

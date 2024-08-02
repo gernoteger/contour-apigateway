@@ -94,6 +94,15 @@ Idea1, produces 1 extra network hop for https edge termination
 - GRPCRoute
 - Observability
 # Links
+Contour:
 - https://projectcontour.io/docs/1.29/config/gateway-api/
 - https://github.com/projectcontour/contour - upstream 
 - https://projectcontour.io/docs/1.29/config/api/ - contour api reference
+Istio:
+- https://istio.io/latest/docs/tasks/traffic-management/ingress/gateway-api/ - install gateway api
+- https://github.com/istio/istio - github repo
+- https://istio.io/latest/docs/setup/install/helm/
+- https://github.com/istio/istio/discussions/48807#discussioncomment-8372247
+
+# Istio Strategy
+- istioctl vs helm? => ambient mode onyl supports helm??

@@ -1,0 +1,10 @@
+# file istioconfig.yaml
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  values:
+    pilot:
+      env:
+        # see: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+        PILOT_ENABLE_ALPHA_GATEWAY_API: true # enable TLSRoute
+        

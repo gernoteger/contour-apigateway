@@ -1,0 +1,21 @@
+apiVersion: v2
+name: istio
+description: istio as ingress controller. A minimal install.
+
+type: application
+
+version: 0.1.0
+
+appVersion: "1.22.3" # no immediate effect. https://github.com/istio/istio/tags
+
+dependencies: 
+  - name: istiod
+    # https://istio.io/latest/docs/setup/install/helm/
+
+    version: "18.2.9"
+    repository: https://charts.bitnami.com/bitnami
+    #repository: oci://registry-1.docker.io/bitnamicharts/contour
+    condition: contourhelm.enabled
+
+
+# https://projectcontour.io/getting-started/#option-2-helm
