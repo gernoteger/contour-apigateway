@@ -11,7 +11,9 @@ workload:
   ingress: # legacy1
     enabled: true
   httpproxy: # legacy2
-    enabled: true
+    enabled: false
+  contourLegacy:
+    enabled: false # same as httpproxy?
   gatewayapi:
     enabled: true
 

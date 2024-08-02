@@ -31,7 +31,7 @@ stop-cluster: stop-kind-cluster
 make-kind-cluster:
     {{scripts}}/make-kind-cluster.sh
     {{scripts}}/install-gatewayapi-crds.sh
-    {{scripts}}/install-contour-crds.sh
+#    {{scripts}}/install-contour-crds.sh
 
 stop-kind-cluster:
     {{scripts}}/cleanup.sh # uses  ${CLUSTERNAME}
@@ -41,20 +41,19 @@ install-contour-script:
 
 template:
     rm -rf  target/templated
-    {{ just_executable() }} template-chart projectcontour contour
-    {{ just_executable() }} template-chart projectcontour payload
+    #{{ just_executable() }} template-chart projectcontour contour
     {{ just_executable() }} template-chart istio-system istio
-
+    {{ just_executable() }} template-chart ingress payload
+ 
 install: template
-    {{ just_executable() }} install-chart projectcontour contour
-    {{ just_executable() }} install-chart projectcontour payload
+    #{{ just_executable() }} install-chart projectcontour contour
     {{ just_executable() }} install-chart istio-system istio
+    {{ just_executable() }} install-chart ingress payload
 
 dependency-update:
-    {{ just_executable() }} dependency-update-chart projectcontour contour
-    {{ just_executable() }} dependency-update-chart projectcontour payload
+    #{{ just_executable() }} dependency-update-chart projectcontour contour
     {{ just_executable() }} dependency-update-chart istio-system istio
-
+    {{ just_executable() }} dependency-update-chart ingress payload
 
 template-chart namespace chart:
     #!/usr/bin/env bash

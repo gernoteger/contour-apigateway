@@ -187,7 +187,7 @@ func getEchoResponse(connectionHost string, testUrl string) (*Echo, error) {
 }
 
 func assertGatewayAddress(t *testing.T) (string, error) {
-	namespace := "projectcontour" //TODO: get from k8s??
+	namespace := "ingress" //TODO: get from k8s??
 	svcIP, err := gatewayAddress(namespace, "edge")
 	assert.NoError(t, err)
 	assert.Regexp(t, "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+", svcIP)
@@ -207,6 +207,7 @@ func assertEchoResponse(t *testing.T, svcIP string, url string) (Echo, error) {
 }
 
 func TestGetHttpProxyEcho(t *testing.T) {
+	t.Skip()
 	svcIP, err := assertGatewayAddress(t)
 	if err != nil {
 		assertEchoResponse(t, svcIP, "http://echo-proxy-http.example.com")

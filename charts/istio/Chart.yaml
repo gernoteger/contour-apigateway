@@ -12,10 +12,12 @@ dependencies:
   - name: istiod
     # https://istio.io/latest/docs/setup/install/helm/
 
-    version: "18.2.9"
-    repository: https://charts.bitnami.com/bitnami
-    #repository: oci://registry-1.docker.io/bitnamicharts/contour
-    condition: contourhelm.enabled
+    version: "1.22.3"
+    repository: https://istio-release.storage.googleapis.com/charts
+
+    condition: istiohelm.enabled
 
 
 # https://projectcontour.io/getting-started/#option-2-helm
+
+
