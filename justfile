@@ -28,8 +28,9 @@ start-cluster: make-kind-cluster
 stop-cluster: stop-kind-cluster
     
 make-kind-cluster:
-     SKIP_GATEWAY_API_INSTALL={{ skipGatewayApi }} SKIP_CRD_INSTALL={{ skipCRDs }} {{scripts}}/make-kind-cluster.sh
-     #SKIP_GATEWAY_API_INSTALL={{ skipGatewayApi }} SKIP_CRD_INSTALL{{scripts}}/make-kind-cluster.sh
+    {{scripts}}/make-kind-cluster.sh
+    {{scripts}}/install-gatewayapi-crds.sh
+    {{scripts}}/install-contour-crds.sh
 
 stop-kind-cluster:
     {{scripts}}/cleanup.sh # uses  ${CLUSTERNAME}
@@ -55,6 +56,7 @@ install: template
         echo "== ${chart} =="    
         {{helm}} upgrade {{ helmSkipCRDS }} --create-namespace --install {{ helmNamespaceReleaseChartStanza }}
     done
+    
 dependency-build:
     {{helm}} dependency build --namespace projectcontour charts/contour
 

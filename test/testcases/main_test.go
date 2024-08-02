@@ -214,7 +214,7 @@ func TestGetHttpProxyEcho(t *testing.T) {
 	}
 }
 
-func TestIngreessEcho(t *testing.T) {
+func TestIngressEcho(t *testing.T) {
 
 	svcIP, err := assertGatewayAddress(t)
 	if err == nil {

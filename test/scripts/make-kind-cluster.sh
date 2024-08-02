@@ -39,12 +39,12 @@ kind::cluster::exists() {
 }
 
 kind::cluster::create() {
-    local config_file="${REPO}/test/scripts/kind-expose-port.yaml"
+    local config_file="${HERE}/kind-expose-port.yaml"
     if [[ "${MULTINODE_CLUSTER}" == "true" ]]; then
-        config_file="${REPO}/test/scripts/kind-multinode.yaml"
+        config_file="${HERE}/kind-multinode.yaml" # TODO: missing
     fi
     if [[ "${IPV6_CLUSTER}" == "true" ]]; then
-        config_file="${REPO}/test/scripts/kind-ipv6.yaml"
+        config_file="${HERE}/kind-ipv6.yaml" # TODO: missing
     fi
     ${KIND} create cluster \
         --name "${CLUSTERNAME}" \
@@ -132,13 +132,3 @@ CERT_MANAGER_VERSION=${CERT_MANAGER_VERSION:-1.15.1}
 ${KUBECTL} apply -f https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml
 ${KUBECTL} wait --timeout="${WAITTIME}" -n cert-manager -l app=cert-manager deployments --for=condition=Available
 ${KUBECTL} wait --timeout="${WAITTIME}" -n cert-manager -l app=webhook deployments --for=condition=Available
-
-if [[ "${SKIP_GATEWAY_API_INSTALL}" != "true" ]]; then
-  # Install Gateway API CRDs.
-  ${KUBECTL} apply -f "${REPO}/examples/gateway/00-crds.yaml"
-fi
-
-if [[ "${SKIP_CRD_INSTALL}" != "true" ]]; then
-# Install Contour CRDs.
-${KUBECTL} apply -f "${REPO}/examples/contour/01-crds.yaml"
-fi
