@@ -10,8 +10,8 @@ metadata:
   annotations:
     networking.istio.io/service-type: ClusterIP
 spec:
-  # gatewayClassName: default-internal
-  gatewayClassName: istio
+  gatewayClassName: default-internal
+  #gatewayClassName: istio
 
   listeners:
     - name: https

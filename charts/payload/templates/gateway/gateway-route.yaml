@@ -14,7 +14,7 @@ spec:
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: edge
-    namespace: projectcontour
+    namespace: {{ include "gateways.namespace" . }}
 
   hostnames:
 {{- range $domain:=.Values.ingress.domains }}
@@ -51,7 +51,7 @@ spec:
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: internal # upstream gateway
-    namespace: projectcontour
+    namespace: {{ include "gateways.namespace" . }}
 
   hostnames:
 {{- range $domain:=.Values.ingress.domains }}
