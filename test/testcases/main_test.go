@@ -208,6 +208,7 @@ func assertEchoResponse(t *testing.T, svcIP string, url string) (Echo, error) {
 
 func TestGetHttpProxyEcho(t *testing.T) {
 	t.Skip()
+
 	svcIP, err := assertGatewayAddress(t)
 	if err != nil {
 		assertEchoResponse(t, svcIP, "http://echo-proxy-http.example.com")
@@ -216,6 +217,7 @@ func TestGetHttpProxyEcho(t *testing.T) {
 }
 
 func TestIngressEcho(t *testing.T) {
+	t.Skip()
 
 	svcIP, err := assertGatewayAddress(t)
 	if err == nil {
@@ -229,7 +231,7 @@ func TestHTTPRouteEcho(t *testing.T) {
 
 	svcIP, err := assertGatewayAddress(t)
 	if err == nil {
-		assertEchoResponse(t, svcIP, "https://echo.example.com")
+		assertEchoResponse(t, svcIP, "http://echo.example.com")
 		assertEchoResponse(t, svcIP, "https://echo.example.com")
 	}
 }

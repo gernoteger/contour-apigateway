@@ -4,6 +4,9 @@ kind: GatewayClass
 apiVersion: gateway.networking.k8s.io/v1
 metadata:
   name: default-edge
+  annotations:
+    gw-class-test: edge # no effect on gateway
+
 spec:
   controllerName: istio.io/gateway-controller
 

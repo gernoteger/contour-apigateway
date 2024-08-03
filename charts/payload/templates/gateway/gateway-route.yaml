@@ -22,8 +22,13 @@ spec:
 {{- end }}
   rules:
   - backendRefs: 
-    - name: envoy-internal 
-      kind: Service
+    - kind: Service
+      ## TODO: how does ist this created?? Auto-provisionining doesn't allow to control the name!!
+      ## https://istio.io/latest/docs/tasks/traffic-management/ingress/gateway-api/#automated-deployment
+      ## maybe create a test??
+      #
+      #name: envoy-internal
+      name: internal-default-internal 
       port: 443
 
     # not allowed!! Could be enhancement!!
@@ -52,6 +57,6 @@ spec:
 {{- end }}
   rules:
   - backendRefs: 
-    - name: envoy-contour-legacy # donstream gateway
-      kind: Service
+    - kind: Service
+      name: envoy-contour-legacy # donstream gateway  
       port: 443

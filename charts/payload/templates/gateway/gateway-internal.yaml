@@ -5,6 +5,10 @@ apiVersion: gateway.networking.k8s.io/v1
 metadata:
   name: internal
   namespace: {{ .Release.Namespace }}
+  # https://istio.io/latest/docs/tasks/traffic-management/ingress/gateway-api/
+  # https://istio.io/latest/docs/tasks/traffic-management/ingress/gateway-api/#automated-deployment
+  annotations:
+    networking.istio.io/service-type: ClusterIP
 spec:
   gatewayClassName: default-internal
   listeners:
