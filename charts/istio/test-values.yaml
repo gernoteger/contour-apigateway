@@ -1,8 +1,0 @@
-# https://github.com/istio/istio/discussions/48807#discussioncomment-8372247
-
-
-aktuell blödsinn!!
-
-extraContainerArgs:
-  - "--foo"
-  - " bar"

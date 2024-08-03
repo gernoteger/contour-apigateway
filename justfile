@@ -107,10 +107,11 @@ install-istio-helm: # TODO: just a test # see https://istio.io/latest/docs/setup
     # https://github.com/istio/istio/tree/master/manifests/charts/istio-control/istio-discovery
     # nned toenable TLSRoute 
     # extraContainerArgs
-    #helm install istiod istio/istiod -n istio-system --wait 
+    helm template istiod istio/istiod -n istio-system --values istio-values.yaml --output-dir target/templated/istio-helm
+    helm upgrade --install istiod istio/istiod -n istio-system --values istio-values.yaml --wait 
 
-    echo "istio config:"
-    kubectl get cm istio -o json | jq -r .data.mesh
+    #echo "istio config:"
+    #kubectl get cm istio -o json | jq -r .data.mesh
 
 install-istio-istioctl: # TODO: for testing
     # namspaces are ignored!

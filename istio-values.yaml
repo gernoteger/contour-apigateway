@@ -1,0 +1,6 @@
+# enable TLSRoute, TCPRoute
+# https://github.com/istio/istio/discussions/48807#discussioncomment-8372247
+pilot:
+  env:
+    # see: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+    PILOT_ENABLE_ALPHA_GATEWAY_API: true # enable TLSRoute
