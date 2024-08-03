@@ -36,6 +36,8 @@ spec:
     #   group: gateway.networking.k8s.io
     #   kind: Gateway
     #   port: 443
+
+{{ if .Values.workload.contourLegacy.enabled }}
 ---
 apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: TLSRoute
@@ -60,3 +62,4 @@ spec:
     - kind: Service
       name: envoy-contour-legacy # donstream gateway  
       port: 443
+{{ end }}

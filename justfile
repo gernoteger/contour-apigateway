@@ -5,7 +5,8 @@ helm:="helm"
 skipGatewayApi:="false"
 skipCRDs:="false"
 
-helmSkipCRDS:="--skip-crds"
+# helmSkipCRDS:="--skip-crds"
+helmSkipCRDS:=""
 
 #helmNamespaceReleaseChartStanza:="--namespace projectcontour contour charts/contour"
 #helmNamespaceReleaseChartStanza:="--namespace projectcontour ${chart} charts/${chart} "
@@ -63,7 +64,7 @@ template-chart namespace chart:
     {{helm}} template {{ helmSkipCRDS }} --namespace {{ namespace }} {{ chart }} charts/{{ chart }} --output-dir target/templated/{{ chart }}
 
 install-chart namespace chart:
-    {{helm}} upgrade {{ helmSkipCRDS }} --create-namespace --install --namespace {{ namespace }} {{ chart }} charts/{{ chart }}
+    {{helm}} upgrade {{ helmSkipCRDS }} --create-namespace --install --wait --namespace {{ namespace }} {{ chart }} charts/{{ chart }}
 
 # dependency-build:
 #     {{helm}} dependency build --namespace projectcontour charts/contour

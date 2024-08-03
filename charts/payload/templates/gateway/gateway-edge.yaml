@@ -6,7 +6,8 @@ metadata:
   name: edge
   namespace: {{ .Release.Namespace }}
 spec:
-  gatewayClassName: default-edge
+  # gatewayClassName: default-edge
+  gatewayClassName: istio
   listeners:
     - name: http
       protocol: HTTP

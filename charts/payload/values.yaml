@@ -4,18 +4,23 @@ ingress:
     #- projectcontour.io # fixed for hardwired tests
     - example.com
 
+  gateway:
+    namespace: ingress
+
 certManager:
   namespace: cert-manager
 
 workload:
   ingress: # legacy1
-    enabled: true
+    enabled: false
   httpproxy: # legacy2
     enabled: false
   contourLegacy:
     enabled: false # same as httpproxy?
   gatewayapi:
     enabled: true
+    httproute:
+      enabled: true
 
 loadbalancer:
   http:

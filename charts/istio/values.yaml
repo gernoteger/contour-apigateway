@@ -8,7 +8,7 @@ gatewayprovisioner:
     enabled: true
 
 istiohelm:
-  enabled: false
+  enabled: true
 
 # common stuff
 ingress:
@@ -34,4 +34,19 @@ test:
 
 # only used with helm deployment!
 
-#istio: # the helm chart..
+istiod:
+  # enable TLSRoute, TCPRoute
+  # https://github.com/istio/istio/discussions/48807#discussioncomment-8372247
+  pilot:
+    env:
+      # see: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+      PILOT_ENABLE_ALPHA_GATEWAY_API: true # enable TLSRoute
+
+# TODO: put elsewhere or own namespace of operator
+kiali-operator: # https://kiali.io/docs/installation/installation-guide/install-with-helm/
+  cr:
+    create: true
+    namespace: istio-system
+    spec:
+      auth:
+        strategy: anonymous

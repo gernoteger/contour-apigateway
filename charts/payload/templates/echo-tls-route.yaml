@@ -14,8 +14,7 @@ spec:
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: edge
-    namespace: {{ .Release.Namespace }}
-
+    namespace: {{ include "gateways.namespace" . }}
   hostnames:
 {{- range $domain:=.Values.ingress.domains }}
   - "echo-tls.{{ $domain }}"

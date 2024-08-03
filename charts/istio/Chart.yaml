@@ -17,7 +17,9 @@ dependencies:
 
     condition: istiohelm.enabled
 
+  - name: kiali-operator
+    version: ">=1.88.0"
+    repository: https://kiali.org/helm-charts
 
-# https://projectcontour.io/getting-started/#option-2-helm
 
 
